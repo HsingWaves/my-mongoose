@@ -26,7 +26,7 @@
 extern "C" {
 #endif
 
-
+// adapt to different operating systems
 #define MG_ARCH_CUSTOM 0        // User creates its own mongoose_config.h
 #define MG_ARCH_UNIX 1          // Linux, BSD, Mac, ...
 #define MG_ARCH_WIN32 2         // Windows
@@ -426,6 +426,7 @@ static inline int mg_mkdir(const char *path, mode_t mode) {
 
 // Avoid name clashing; (macro expansion producing 'defined' has undefined
 // behaviour). See config.h for user options
+// avoid deciding Winsock usage
 #ifndef MG_ENABLE_WINSOCK
 #if (!defined(MG_ENABLE_TCPIP) || !MG_ENABLE_TCPIP) && \
     (!defined(MG_ENABLE_LWIP) || !MG_ENABLE_LWIP) &&   \
@@ -435,25 +436,25 @@ static inline int mg_mkdir(const char *path, mode_t mode) {
 #define MG_ENABLE_WINSOCK 0
 #endif
 #endif
-
-#ifndef _CRT_RAND_S
+// Define Windows compatibility macros
+#ifndef _CRT_RAND_S // For MSVC 2010 and older Enables rand_s for secure random generation.
 #define _CRT_RAND_S
 #endif
 
-#ifndef WIN32_LEAN_AND_MEAN
+#ifndef WIN32_LEAN_AND_MEAN // Exclude rarely-used stuff from Windows headers， Makes windows.h smaller by excluding rarely-used APIs (reduces compile time and pollution).
 #define WIN32_LEAN_AND_MEAN
 #endif
 
-#ifndef _CRT_SECURE_NO_WARNINGS
+#ifndef _CRT_SECURE_NO_WARNINGS // Disable deprecation warnings for unsafe functions like strcpy, sprintf, etc.
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
-#ifndef _WINSOCK_DEPRECATED_NO_WARNINGS
+#ifndef _WINSOCK_DEPRECATED_NO_WARNINGS // Disable deprecation warnings for Winsock functions like gethostbyname, etc.
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #endif
 
 #include <ctype.h>
-#include <direct.h>
+#include <direct.h> // _mkdir() _chdir() etc.
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
@@ -486,8 +487,8 @@ typedef enum { false = 0, true = 1 } bool;
 #endif
 #endif
 
-#include <process.h>
-#include <winerror.h>
+#include <process.h>   // _getpid() _beginthread, _exit etc.
+#include <winerror.h>  // ERROR_* macros
 #include <winsock2.h>       // fix missing macros and types
 
 // For mg_random()
@@ -551,7 +552,7 @@ typedef int socklen_t;
 #define SO_EXCLUSIVEADDRUSE ((int) (~SO_REUSEADDR))
 #endif
 
-#define MG_SOCK_ERR(errcode) ((errcode) < 0 ? WSAGetLastError() : 0)
+#define MG_SOCK_ERR(errcode) ((errcode) < 0 ? WSAGetLastError() : 0) 
 
 #define MG_SOCK_PENDING(errcode)                                            \
   (((errcode) < 0) &&                                                       \
@@ -559,14 +560,14 @@ typedef int socklen_t;
     WSAGetLastError() == WSAEWOULDBLOCK))
 
 #define MG_SOCK_RESET(errcode) \
-  (((errcode) < 0) && (WSAGetLastError() == WSAECONNRESET))
+  (((errcode) < 0) && (WSAGetLastError() == WSAECONNRESET)) //  Used to detect connection closure in Mongoose. 
 
 #endif  // MG_ENABLE_WINSOCK
 
-#define realpath(a, b) _fullpath((b), (a), MG_PATH_MAX)
+#define realpath(a, b) _fullpath((b), (a), MG_PATH_MAX) // realpath() → POSIX → resolves path (e.g. /foo/bar/../baz → /foo/baz).
 #define sleep(x) Sleep((x) *1000)
-#define mkdir(a, b) _mkdir(a)
-#define timegm(x) _mkgmtime(x)
+#define mkdir(a, b) _mkdir(a) // mkdir() → POSIX → creates directory with permissions.
+#define timegm(x) _mkgmtime(x) // timegm() → POSIX → converts time to UTC.
 
 #ifndef S_ISDIR
 #define S_ISDIR(x) (((x) &_S_IFMT) == _S_IFDIR)
@@ -948,16 +949,16 @@ struct mg_str {
 // Using macro to avoid shadowing C++ struct constructor, see #1298
 #define mg_str(s) mg_str_s(s)
 
-struct mg_str mg_str(const char *s);
-struct mg_str mg_str_n(const char *s, size_t n);
-int mg_casecmp(const char *s1, const char *s2);
-int mg_strcmp(const struct mg_str str1, const struct mg_str str2);
-int mg_strcasecmp(const struct mg_str str1, const struct mg_str str2);
-struct mg_str mg_strdup(const struct mg_str s);
-bool mg_match(struct mg_str str, struct mg_str pattern, struct mg_str *caps);
-bool mg_span(struct mg_str s, struct mg_str *a, struct mg_str *b, char delim);
+struct mg_str mg_str(const char *s); // String without length
+struct mg_str mg_str_n(const char *s, size_t n);// String with length
+int mg_casecmp(const char *s1, const char *s2); // Case insensitive compare
+int mg_strcmp(const struct mg_str str1, const struct mg_str str2);//  Compare strings
+int mg_strcasecmp(const struct mg_str str1, const struct mg_str str2); // Case insensitive compare
+struct mg_str mg_strdup(const struct mg_str s);// Duplicate string
+bool mg_match(struct mg_str str, struct mg_str pattern, struct mg_str *caps); // Match string against pattern
+bool mg_span(struct mg_str s, struct mg_str *a, struct mg_str *b, char delim); // Split string into two parts by delimiter
 
-bool mg_str_to_num(struct mg_str, int base, void *val, size_t val_len);
+bool mg_str_to_num(struct mg_str, int base, void *val, size_t val_len); // Convert string to number
 
 
 
