@@ -7254,6 +7254,7 @@ char *mg_mprintf(const char *fmt, ...) {
   return s;
 }
 
+// Printf to a string, but do not free it. It is static and will be reused.
 void mg_pfn_stdout(char c, void *param) {
   putchar(c);
   (void) param;
