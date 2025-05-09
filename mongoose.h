@@ -1132,21 +1132,23 @@ struct mg_str mg_unpacked(const char *path);  // Packed file as mg_str
 
 
 
-
+// assertion macros
 #if MG_ENABLE_ASSERT
 #include <assert.h>
 #elif !defined(assert)
 #define assert(x)
 #endif
 
-void mg_bzero(volatile unsigned char *buf, size_t len);
-bool mg_random(void *buf, size_t len);
-char *mg_random_str(char *buf, size_t len);
-uint32_t mg_crc32(uint32_t crc, const char *buf, size_t len);
-uint64_t mg_millis(void);  // Return milliseconds since boot
-bool mg_path_is_sane(const struct mg_str path);
-void mg_delayms(unsigned int ms);
+// memory management functions
+void mg_bzero(volatile unsigned char *buf, size_t len); // Zero memory
+bool mg_random(void *buf, size_t len); // Fill buffer with random data
+char *mg_random_str(char *buf, size_t len); // Fill buffer with random string
+uint32_t mg_crc32(uint32_t crc, const char *buf, size_t len); //  CRC32 checksum
+uint64_t mg_millis(void);  // Return milliseconds since boot // Milliseconds since boot
+bool mg_path_is_sane(const struct mg_str path); // Check if path is sane
+void mg_delayms(unsigned int ms); // Delay in milliseconds
 
+// ip address utility functions
 #define MG_U32(a, b, c, d)                                         \
   (((uint32_t) ((a) &255) << 24) | ((uint32_t) ((b) &255) << 16) | \
    ((uint32_t) ((c) &255) << 8) | (uint32_t) ((d) &255))
@@ -1158,6 +1160,7 @@ void mg_delayms(unsigned int ms);
 #define MG_IPADDR_PARTS(ADDR) \
   MG_U8P(ADDR)[0], MG_U8P(ADDR)[1], MG_U8P(ADDR)[2], MG_U8P(ADDR)[3]
 
+  // Endian-Conversion Macros (Big-Endian)
 #define MG_LOAD_BE16(p) \
   ((uint16_t) (((uint16_t) MG_U8P(p)[0] << 8U) | MG_U8P(p)[1]))
 #define MG_LOAD_BE24(p)                           \
@@ -1186,17 +1189,20 @@ void mg_delayms(unsigned int ms);
     MG_U8P(p)[3] = (n) &255;           \
   } while (0)
 
-uint16_t mg_ntohs(uint16_t net);
-uint32_t mg_ntohl(uint32_t net);
-#define mg_htons(x) mg_ntohs(x)
-#define mg_htonl(x) mg_ntohl(x)
+  // Byte Order Conversion
+uint16_t mg_ntohs(uint16_t net); // Network to host short
+uint32_t mg_ntohl(uint32_t net); // Network to host long
+#define mg_htons(x) mg_ntohs(x)   // Host to network short
+#define mg_htonl(x) mg_ntohl(x) //  Host to network long
 
+// Bit/Memory Manipulation
 #define MG_REG(x) ((volatile uint32_t *) (x))[0]
 #define MG_BIT(x) (((uint32_t) 1U) << (x))
 #define MG_SET_BITS(R, CLRMASK, SETMASK) (R) = ((R) & ~(CLRMASK)) | (SETMASK)
 
-#define MG_ROUND_UP(x, a) ((a) == 0 ? (x) : ((((x) + (a) -1) / (a)) * (a)))
-#define MG_ROUND_DOWN(x, a) ((a) == 0 ? (x) : (((x) / (a)) * (a)))
+// Memory Alignment
+#define MG_ROUND_UP(x, a) ((a) == 0 ? (x) : ((((x) + (a) -1) / (a)) * (a)))   // Round up to the nearest multiple of a
+#define MG_ROUND_DOWN(x, a) ((a) == 0 ? (x) : (((x) / (a)) * (a))) // Round down to the nearest multiple of a
 
 #if defined(__GNUC__)
 #define MG_ARM_DISABLE_IRQ() asm volatile("cpsid i" : : : "memory")

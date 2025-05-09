@@ -19261,7 +19261,7 @@ struct mg_str mg_url_pass(const char *url) {
 #endif
 
 
-
+//  Memory and Utility Functions
 // Not using memset for zeroing memory, cause it can be dropped by compiler
 // See https://github.com/cesanta/mongoose/pull/1265
 void mg_bzero(volatile unsigned char *buf, size_t len) {
