@@ -53,7 +53,9 @@ static int mg_base64_decode_single(int c) {
     return -1;
   }
 }
-
+//Base64 is typically used to encode binary data into a textual format (e.g., for embedding in JSON, XML, HTTP, etc.). 
+//Traditional Base64 functions operate on whole buffers at once. But in many real-world systems, 
+//especially embedded, network, or low-memory environments, you often deal with streams of data rather than one big buffer.
 size_t mg_base64_update(unsigned char ch, char *to, size_t n) {
   unsigned long rem = (n & 3) % 3;
   if (rem == 0) {

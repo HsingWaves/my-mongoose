@@ -1253,16 +1253,16 @@ int mg_check_ip_acl(struct mg_str acl, struct mg_addr *remote_ip);
 
 
 
-unsigned short mg_url_port(const char *url);
-int mg_url_is_ssl(const char *url);
-struct mg_str mg_url_host(const char *url);
-struct mg_str mg_url_user(const char *url);
-struct mg_str mg_url_pass(const char *url);
-const char *mg_url_uri(const char *url);
+unsigned short mg_url_port(const char *url);  // Get port from URL
+int mg_url_is_ssl(const char *url);         // Is URL SSL?
+struct mg_str mg_url_host(const char *url); // Get host from URL
+struct mg_str mg_url_user(const char *url); // Get user from URL
+struct mg_str mg_url_pass(const char *url);   // Get password from URL
+const char *mg_url_uri(const char *url);  // Get URI from URL
 
 
 
-
+// growable byte buffer — like a simple version of std::vector<uint8_t>
 struct mg_iobuf {
   unsigned char *buf;  // Pointer to stored data
   size_t size;         // Total size available
@@ -1270,34 +1270,37 @@ struct mg_iobuf {
   size_t align;        // Alignment during allocation
 };
 
-int mg_iobuf_init(struct mg_iobuf *, size_t, size_t);
-int mg_iobuf_resize(struct mg_iobuf *, size_t);
-void mg_iobuf_free(struct mg_iobuf *);
-size_t mg_iobuf_add(struct mg_iobuf *, size_t, const void *, size_t);
-size_t mg_iobuf_del(struct mg_iobuf *, size_t ofs, size_t len);
+int mg_iobuf_init(struct mg_iobuf *, size_t, size_t); // Initializes the buffer with given size and alignment.
+int mg_iobuf_resize(struct mg_iobuf *, size_t); // Resizes the buffer to the new size.
+void mg_iobuf_free(struct mg_iobuf *); // Frees the buffer.
+size_t mg_iobuf_add(struct mg_iobuf *, size_t, const void *, size_t); // Adds data to the buffer.
+size_t mg_iobuf_del(struct mg_iobuf *, size_t ofs, size_t len); // Deletes data from the buffer.
 
 
-size_t mg_base64_update(unsigned char input_byte, char *buf, size_t len);
-size_t mg_base64_final(char *buf, size_t len);
-size_t mg_base64_encode(const unsigned char *p, size_t n, char *buf, size_t);
-size_t mg_base64_decode(const char *src, size_t n, char *dst, size_t);
+size_t mg_base64_update(unsigned char input_byte, char *buf, size_t len); //  Base64 update function
+size_t mg_base64_final(char *buf, size_t len); // Base64 final function
+size_t mg_base64_encode(const unsigned char *p, size_t n, char *buf, size_t); // Base64 encode function
+size_t mg_base64_decode(const char *src, size_t n, char *dst, size_t); // Base64 decode function
 
 
 
-
+// defines a simple MD5 hashing interface, suitable for incremental/streaming MD5 computation
 typedef struct {
   uint32_t buf[4];
   uint32_t bits[2];
   unsigned char in[64];
 } mg_md5_ctx;
 
+// It allows hashing large or streaming data (files, network messages) without loading everything into memory
 void mg_md5_init(mg_md5_ctx *c);
 void mg_md5_update(mg_md5_ctx *c, const unsigned char *data, size_t len);
 void mg_md5_final(mg_md5_ctx *c, unsigned char[16]);
+// Data Integrity Check  Data Deduplication Fast Fingerprints Legacy Systems
 
+// but MD5 is broken cryptographically: https://en.wikipedia.org/wiki/MD5#Cryptanalysis
+// MD5 is not suitable for cryptographic purposes, but it is still widely used for checksums and data integrity checks        
 
-
-
+// Use SHA-256 or SHA-3 instead for security-critical purposes.
 typedef struct {
   uint32_t state[5];
   uint32_t count[2];
